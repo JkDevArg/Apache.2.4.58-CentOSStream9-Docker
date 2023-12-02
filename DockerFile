@@ -1,0 +1,28 @@
+# Usamos la imagen Centos Stream 9
+FROM quay.io/centos/centos:stream9
+
+# Instalación las dependencias necesarias para compilar Apache
+RUN dnf -y update && \
+    dnf -y install wget gcc make pcre-devel expat-devel && \
+    dnf -y install git && \
+    dnf install -y apr apr-util apr-devel apr-util-devel && \
+    dnf groupinstall "Development Tools" -y && \
+    dnf clean all
+
+# Descargar y descomprimir Apache
+WORKDIR /usr/src
+RUN wget https://dlcdn.apache.org/httpd/httpd-2.4.58.tar.gz && \
+    tar -xzvf httpd-2.4.58.tar.gz
+
+# Compilar e instalar Apache
+WORKDIR /usr/src/httpd-2.4.58
+RUN ./configure --prefix=/usr/local/apache2 --enable-so && \
+    make && \
+    make install
+
+
+# Exponer el puerto 80 para Apache
+EXPOSE 80
+
+# Comando para iniciar Apache en segundo plano
+CMD ["/usr/local/apache2/bin/httpd", "-D", "FOREGROUND"]
